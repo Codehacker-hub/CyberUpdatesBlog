@@ -2,25 +2,71 @@
 @tailwind components;
 @tailwind utilities;
 
-body{
-    background-color:  #e6e6ff;
-    width : 100vw;
-    overflow-x: hidden;
-    font-family: "Montserrat", sans-serif;
-
+body {
+  background-color: #e6e6ff;
+  width: 100vw;
+  overflow-x: hidden;
+  font-family: "Montserrat", sans-serif;
 }
 
-.animatedButton{
-    animation-duration: 10000ms;
+.animatedButton {
+  animation-duration: 10000ms;
 }
 
-.ql-container{
-    border: none !important;
+.ql-container {
+  border: none !important;
 }
-.ql-toolbar{
-    border: none !important;
+.ql-toolbar {
+  border: none !important;
 }
-.ql-editor{
-    border: none !important;
+.ql-editor {
+  border: none !important;
 }
 
+/* Add these styles to your global CSS */
+.quill-editor {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.quill-editor .ql-container {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 300px;
+  font-size: 16px;
+}
+
+.quill-editor .ql-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: white;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 8px 12px;
+}
+
+.quill-editor .ql-editor {
+  min-height: 300px;
+  cursor: text;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.quill-editor .ql-editor::-webkit-scrollbar {
+  width: 8px;
+}
+
+.quill-editor .ql-editor::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.quill-editor .ql-editor::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.quill-editor .ql-editor::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}

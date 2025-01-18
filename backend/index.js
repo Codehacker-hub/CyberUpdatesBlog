@@ -6,9 +6,12 @@ import webhookRouter from "./routes/webhook.route.js";
 import connectDB from "./lib/connectDB.js";
 import { clerkMiddleware, requireAuth } from "@clerk/express";
 import dotenv from "dotenv";
+import cors from "cors";
 
 const app = express();
+
 dotenv.config();
+app.use(cors(process.env.CLIENT_URL));
 
 // Clerk middleware
 
@@ -19,22 +22,30 @@ app.use(express.json());
 
 // app.get("/auth-state", (req,res)=>{
 //   const authstate = req.auth;
-//   res.json({authstate});                     
+//   res.json({authstate});
 // })
 
+app.use(function (req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+  );
+  next();
+});
 
-// app.get("/protect", (req, res) => {
-//   const { userId } = req.auth;
-//   if (!userId) {
-//     res.status(401).json({ error: "Unauthorized" });
-//   }
-//   res.status(200).json({ userId });
-// });
-
-app.get("/protect2", requireAuth(), (req, res) => {
+app.get("/protect", (req, res) => {
   const { userId } = req.auth;
+  if (!userId) {
+    res.status(401).json({ error: "Unauthorized" });
+  }
   res.status(200).json({ userId });
 });
+
+// app.get("/protect2", requireAuth(), (req, res) => {
+//   const { userId } = req.auth;
+//   res.status(200).json({ userId });
+// });
 
 // Route registration
 app.use("/users", userRouter);
