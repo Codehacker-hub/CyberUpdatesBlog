@@ -1,4 +1,7 @@
-import { Link, useParams } from "react-router-dom";
+import React from 'react';
+import { Link, useParams, useSearchParams } from "react-router-dom";
+import { FaUser, FaTags, FaCalendarAlt, FaEye, FaFacebookF, FaInstagram } from "react-icons/fa";
+import { Helmet } from "react-helmet-async";
 import Image from "../components/Image";
 import PostMenuActions from "../components/PostMenuActions";
 import Search from "../components/Search";
@@ -6,129 +9,256 @@ import Comments from "../components/Comments";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "timeago.js";
+import Loader from "../components/Loader";
+import { toast } from "react-toastify";
+import ErrorFallback from '../components/ErrorFallback';
 
 const fetchPost = async (slug) => {
   const res = await axios.get(`${import.meta.env.VITE_API_URL}/posts/${slug}`);
   return res.data;
 };
 
+const MetaInfo = ({ icon: Icon, label, value, className }) => (
+  <div className="flex items-center gap-2 group relative">
+    <Icon className={`${className} w-4 h-4`} />
+    <span className="text-gray-600">{value}</span>
+    <div className="absolute invisible group-hover:visible bg-gray-900 text-white text-xs px-2 py-1 rounded -top-8 whitespace-nowrap">
+      {label}
+    </div>
+  </div>
+);
+
+const CategoryLink = ({ category, isActive, onClick }) => (
+  <button
+    onClick={onClick}
+    className={`px-3 py-1.5 rounded-full transition-all ${
+      isActive 
+        ? "bg-blue-100 text-blue-800 font-medium" 
+        : "text-gray-600 hover:bg-gray-100"
+    }`}
+  >
+    {category.charAt(0).toUpperCase() + category.slice(1).replace("-", " ")}
+  </button>
+);
+
 const SinglePostPage = () => {
   const { slug } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const { isPending, error, data } = useQuery({
+  const { isLoading, error, data, refetch } = useQuery({
     queryKey: ["post", slug],
     queryFn: () => fetchPost(slug),
   });
 
-  if (isPending) {
+  const isCategoryActive = (category) => searchParams.get("cat") === category;
+
+  const handleCategoryChange = (category) => {
+    if (searchParams.get("cat") !== category) {
+      setSearchParams({ ...Object.fromEntries(searchParams.entries()), cat: category });
+    }
+  };
+
+  if (isLoading) {
     return (
-      <div role="status">
-        <svg
-          aria-hidden="true"
-          class="w-8 h-8 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600"
-          viewBox="0 0 100 101"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
-            fill="currentColor"
-          />
-          <path
-            d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
-            fill="currentFill"
-          />
-        </svg>
-        <span class="sr-only">Loading...</span>
+      <div className="min-h-screen flex justify-center items-center">
+        <Loader />
       </div>
     );
   }
-  if (error) return "Something went wrong!" + error.message;
+
+  if (error) {
+   
+    return (
+      <ErrorFallback
+        className="min-h-screen flex justify-center items-center"
+        message="Failed to load Post. Please try again."
+        onRetry={refetch} // Retry fetching data
+      />
+    );
+  }
+
   if (!data) return "Post not found!";
 
   return (
-    <div className="flex flex-col gap-8">
-      {/* detail */}
-      <div className="flex gap-8">
-        <div className="lg:w-3/5 flex flex-col gap-8">
-          <h1 className="text-xl md:text-3xl xl:text-4xl 2xl:text-5xl font-semibold">
-            {data.title}
-          </h1>
-          <div className="flex items-center gap-2 text-gray-400 text-sm">
-            <span>Written by</span>
-            <Link className="text-blue-800">{data.user.username}</Link>
-            <span>on</span>
-            <Link className="text-blue-800">{data.category}</Link>
-            <span>{format(data.createdAt)}</span>
-          </div>
-          <p className="text-gray-500 font-medium">{data.desc}</p>
-        </div>
-        {data.img && (
-          <div className="hidden lg:block w-2/5">
-            <Image src={data.img} w="600" className="rounded-2xl" />
-          </div>
-        )}
-      </div>
-      {/* content */}
-      <div className="flex flex-col md:flex-row gap-12 justify-between">
-        {/* text */}
-        <div
-          className="lg:text-lg flex flex-col gap-6 text-justify"
-          dangerouslySetInnerHTML={{ __html: data.content }}
-        ></div>
+    <div className="max-w-7xl mx-auto px-4 py-8">
+      <Helmet>
+        <title>{data.title} | YourSiteName</title>
+        <meta name="description" content={data.desc} />
+        <meta name="keywords" content={data.tags?.join(", ")} />
+        <meta property="og:title" content={data.title} />
+        <meta property="og:description" content={data.desc} />
+        <meta property="og:image" content={data.img || "default-image-url.jpg"} />
+        <meta property="og:url" content={`${import.meta.env.VITE_SITE_URL}/posts/${slug}`} />
+        <meta property="og:type" content="article" />
+        <link rel="canonical" href={`${import.meta.env.VITE_SITE_URL}/posts/${slug}`} />
+        <style>
+          {`
+            .post-content h1 { @apply text-3xl font-bold mt-8 mb-4; }
+            .post-content h2 { @apply text-2xl font-bold mt-6 mb-4; }
+            .post-content h3 { @apply text-xl font-bold mt-6 mb-3; }
+            .post-content h4 { @apply text-lg font-bold mt-4 mb-2; }
+            .post-content h5 { @apply text-base font-bold mt-4 mb-2; }
+            .post-content h6 { @apply text-sm font-bold mt-4 mb-2; }
+            .post-content p { @apply text-base leading-7 mb-4; }
+            .post-content ul { @apply list-disc pl-6 mb-4; }
+            .post-content ol { @apply list-decimal pl-6 mb-4; }
+            .post-content li { @apply mb-2; }
+            .post-content img { @apply max-w-full h-auto rounded-lg my-4; }
+            .post-content pre { @apply bg-gray-100 p-4 rounded-lg my-4 overflow-x-auto; }
+            .post-content code { @apply bg-gray-100 px-1 py-0.5 rounded; }
+            .post-content blockquote { @apply border-l-4 border-gray-300 pl-4 my-4 italic; }
+          `}
+        </style>
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Article",
+            headline: data.title,
+            description: data.desc,
+            author: {
+              "@type": "Person",
+              name: data.user.username,
+            },
+            datePublished: data.createdAt,
+            image: data.img || "default-image-url.jpg",
+            mainEntityOfPage: {
+              "@type": "WebPage",
+              "@id": `${import.meta.env.VITE_SITE_URL}/posts/${slug}`,
+            },
+          })}
+        </script>
+      </Helmet>
 
-        {/* menu */}
-        <div className="px-4 h-max sticky top-8">
-          <h1 className="mb-4 text-sm font-medium">Author</h1>
-          <div className="flex flex-col gap-4">
-            <div className="flex items-center gap-8">
-              {data.user.img && (
-                <Image
-                  src={data.user.img}
-                  className="w-12 h-12 rounded-full object-cover"
-                  w="48"
-                  h="48"
+      <div className="grid lg:grid-cols-3 gap-12">
+        {/* Main Content */}
+        <div className="lg:col-span-2 space-y-8">
+          {/* Hero Section */}
+          <div className="space-y-6">
+            {data.img && (
+              <div className="relative h-96 rounded-2xl overflow-hidden">
+                <Image 
+                  src={data.img} 
+                  className="absolute inset-0 w-full h-full object-cover"
                 />
-              )}
-              <Link className="text-blue-800">{data.user.username}</Link>
+              </div>
+            )}
+            
+            <h1 className="text-4xl font-bold text-gray-900 leading-tight">
+              {data.title}
+            </h1>
+
+            {/* Meta Information */}
+            <div className="flex flex-wrap items-center gap-6 text-sm relative">
+              <MetaInfo 
+                icon={FaUser} 
+                label="Author" 
+                value={data.user.username}
+                className="text-blue-600"
+              />
+              <MetaInfo 
+                icon={FaTags} 
+                label="Category" 
+                value={data.category}
+                className="text-green-600"
+              />
+              <MetaInfo 
+                icon={FaCalendarAlt} 
+                label="Published" 
+                value={format(data.createdAt)}
+                className="text-orange-600"
+              />
+              <MetaInfo 
+                icon={FaEye} 
+                label="Views" 
+                value={data.visit}
+                className="text-purple-600"
+              />
             </div>
-            <p className="text-sm text-gray-500">
-              Lorem ipsum dolor sit amet consectetur
+
+            <p className="text-lg text-gray-600 leading-relaxed">
+              {data.desc}
             </p>
-            <div className="flex gap-2">
-              <Link>
-                <Image src="facebook.svg" />
-              </Link>
-              <Link>
-                <Image src="instagram.svg" />
-              </Link>
+          </div>
+
+          {/* Article Content */}
+          <div 
+            className="post-content"
+            dangerouslySetInnerHTML={{ __html: data.content }}
+          />
+
+          {/* Comments Section */}
+          <div className="mt-12 pt-8 border-t">
+            <Comments postId={data._id} />
+          </div>
+        </div>
+
+        {/* Sidebar - Fixed */}
+        <div className="lg:block">
+          <div className="sticky top-8 space-y-8">
+            {/* Author Card */}
+            <div className="bg-white rounded-xl p-6 shadow-sm border">
+              <h2 className="text-lg font-semibold mb-4">About the Author</h2>
+              <div className="flex items-center gap-4 mb-4">
+                {data.user.img ? (
+                  <img
+                    src={data.user.img}
+                    className="w-16 h-16 rounded-full object-cover"
+                    alt={data.user.username}
+                  />
+                ) : (
+                  <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center">
+                    <FaUser className="w-8 h-8 text-gray-400" />
+                  </div>
+                )}
+                <div>
+                  <h3 className="font-medium text-lg">{data.user.username}</h3>
+                  <div className="flex gap-2 mt-2">
+                    <Link className="text-gray-600 hover:text-blue-600">
+                      <FaFacebookF className="w-5 h-5" />
+                    </Link>
+                    <Link className="text-gray-600 hover:text-pink-600">
+                      <FaInstagram className="w-5 h-5" />
+                    </Link>
+                  </div>
+                </div>
+              </div>
+              <PostMenuActions post={data} />
+            </div>
+
+            {/* Categories */}
+            <div className="bg-white rounded-xl p-6 shadow-sm border">
+              <h2 className="text-lg font-semibold mb-4">Categories</h2>
+              <div className="flex flex-wrap gap-2">
+                <CategoryLink 
+                  category="all" 
+                  isActive={!searchParams.get("cat")}
+                  onClick={() => setSearchParams({})}
+                />
+                {[
+                  "general",
+                  "cyber-security",
+                  "ethical-hacking",
+                  "tech-news",
+                  "tutorial",
+                ].map((category) => (
+                  <CategoryLink
+                    key={category}
+                    category={category}
+                    isActive={isCategoryActive(category)}
+                    onClick={() => handleCategoryChange(category)}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Search */}
+            <div className="bg-white rounded-xl p-6 shadow-sm border">
+              <h2 className="text-lg font-semibold mb-4">Search Posts</h2>
+              <Search />
             </div>
           </div>
-          <PostMenuActions post={data} />
-          <h1 className="mt-8 mb-4 text-sm font-medium">Categories</h1>
-          <div className="flex flex-col gap-2 text-sm">
-            <Link className="underline">All</Link>
-            <Link className="underline" to="/">
-              Web Design
-            </Link>
-            <Link className="underline" to="/">
-              Development
-            </Link>
-            <Link className="underline" to="/">
-              Databases
-            </Link>
-            <Link className="underline" to="/">
-              Search Engines
-            </Link>
-            <Link className="underline" to="/">
-              Marketing
-            </Link>
-          </div>
-          <h1 className="mt-8 mb-4 text-sm font-medium">Search</h1>
-          <Search />
         </div>
       </div>
-      <Comments postId={data._id} />
     </div>
   );
 };

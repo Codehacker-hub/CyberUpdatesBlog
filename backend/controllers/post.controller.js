@@ -65,17 +65,26 @@ export const getPosts = async (req, res) => {
 };
 
 export const getPost = async (req, res) => {
-  const post = await Post.findOne({ slug: req.params.slug }).populate(
-    "user",
-    "username img"
-  );
-  res.status(200).json(post);
+  try {
+    const post = await Post.findOne({ slug: req.params.slug }).populate(
+      "user",
+      "username img"
+    );
+
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    res.status(200).json(post);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "An error occurred", error: error.message });
+  }
 };
 
 export const createPost = async (req, res) => {
   const clerkUserId = req.auth.userId;
-
-  console.log(req.headers);
 
   if (!clerkUserId) {
     return res.status(401).json("Not authenticated!");
@@ -87,22 +96,35 @@ export const createPost = async (req, res) => {
     return res.status(404).json("User not found!");
   }
 
-  let slug = req.body.title.replace(/ /g, "-").toLowerCase();
+  let slug = req.body.title
+    .replace(/[^a-zA-Z0-9 ]/g, "") // Remove all non-alphanumeric characters
+    .replace(/ /g, "-")
+    .toLowerCase();
 
+  // Check if a post with this slug already exists
   let existingPost = await Post.findOne({ slug });
 
   let counter = 2;
 
+  // If a post exists, modify the slug until it's unique
   while (existingPost) {
     slug = `${slug}-${counter}`;
     existingPost = await Post.findOne({ slug });
     counter++;
   }
 
+  // Create the new post
   const newPost = new Post({ user: user._id, slug, ...req.body });
 
-  const post = await newPost.save();
-  res.status(200).json(post);
+  try {
+    const post = await newPost.save();
+    res.status(200).json(post);
+  } catch (error) {
+    console.error("Error saving post:", error);
+    res
+      .status(500)
+      .json({ error: "An error occurred while creating the post" });
+  }
 };
 
 export const deletePost = async (req, res) => {

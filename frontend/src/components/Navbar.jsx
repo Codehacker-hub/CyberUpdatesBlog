@@ -1,79 +1,132 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import {
-  SignedIn,
-  SignedOut,
-  SignInButton,
-  useAuth,
-  UserButton,
-} from "@clerk/clerk-react";
+import { Link, useLocation } from "react-router-dom";
+import { SignedIn, SignedOut, UserButton } from "@clerk/clerk-react";
+import { FaBars, FaTimes } from "react-icons/fa";
+import { Helmet } from "react-helmet-async";
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
+  const { pathname } = useLocation();
 
-  const {getToken} = useAuth()
+  useEffect(() => {
+    // Close mobile menu and remove no-scroll class on route change
+    setOpen(false);
+    document.body.classList.remove("no-scroll");
+  }, [pathname]);
 
-  // useEffect(()=>{
-  //   getToken().then((token)=>console.log(token))
-  // },[])
+  useEffect(() => {
+    // Toggle body scroll based on menu state
+    if (open) {
+      document.body.classList.add("no-scroll");
+    } else {
+      document.body.classList.remove("no-scroll");
+    }
+  }, [open]);
 
   return (
-    <div className="w-full h-16 md:h-20 flex items-center justify-between">
-      {/*Logo*/}
+    <>
+      {/* SEO Metadata */}
+      <Helmet>
+        <title>Cyber Updates - Stay Informed on Cyber Trends</title>
+        <meta
+          name="description"
+          content="Cyber Updates brings you the latest trends in cybersecurity, tech news, and ethical hacking. Stay informed and secure your digital life."
+        />
+        <meta
+          name="keywords"
+          content="Cybersecurity, Ethical Hacking, Tech News, Cyber Trends, Popular Posts"
+        />
+        <meta name="author" content="Cyber Updates" />
+      </Helmet>
 
-      <div className="flex items-center gap-4 text-2xl font-bold">
-        <Link to="/">
-          <span className="font-bold text-blue-500 hover:text-blue-700 transition-colors duration-300">
+      <nav className="w-full h-16 md:h-20 flex items-center justify-between ">
+        {/* Logo */}
+        <div className="flex items-center gap-4 text-2xl font-bold">
+          <Link
+            to="/"
+            className="text-blue-500 hover:text-blue-700 transition-colors"
+          >
             Cyber <span className="text-gray-800">Updates</span>
-          </span>
-        </Link>
-      </div>
-
-      {/*Moblie View*/}
-      <div className="md:hidden">
-        {/*Toggle Menu*/}
-        <div
-          className="cursor-pointer text-2xl "
-          onClick={() => setOpen((prev) => !prev)}
-        >
-          {open ? "X" : "≡"}
-        </div>
-
-        {/*Mobile Menu Items*/}
-        <div
-          className={`w-full h-screen flex  flex-col items-center justify-center gap-8 font-medium text-lg absolute top-16 bg-red-700  transition-all ease-in-out ${
-            open ? "-right-0" : "-right-[100%]"
-          }`}
-        >
-          <Link to="/">Home</Link>
-          <Link to="/">Trending</Link>
-          <Link to="/">Popular</Link>
-          <Link to="/">About</Link>
-          <Link to="">
-            <button className="py-2 px-4 rounded-3xl bg-blue-800 text-white">
-              Login 👋{" "}
-            </button>
           </Link>
         </div>
-      </div>
-      {/*Desktop Menu*/}
-      <div className="hidden md:flex items-center gap-8 xl:gap-12 font-medium ">
-        <Link to="/">Home</Link>
-        <Link to="/posts?sort=trending">Trending</Link>
-        <Link to="/posts?sort=popular">Popular</Link>
-        <Link to="/about">About</Link>
-        <SignedOut>
-          <Link to="/login">
-            <button className="py-2 px-4 rounded-3xl bg-blue-800 text-white">
-              Login 👋{" "}
-            </button>
+
+        {/* Mobile View */}
+        <div className="md:hidden">
+          {/* Toggle Menu */}
+          <button
+            className="text-2xl text-gray-800 focus:outline-none"
+            aria-label="Toggle Menu"
+            onClick={() => setOpen((prev) => !prev)}
+          >
+            {open ? <FaTimes /> : <FaBars />}
+          </button>
+
+          {/* Mobile Menu Items */}
+          <div
+            className={`fixed top-16 right-0 w-full h-screen bg-white text-black flex flex-col items-center justify-center gap-8 transition-transform transform ${
+              open ? "translate-x-0" : "translate-x-full"
+            }`}
+          >
+            <Link to="/" className="hover:text-blue-500">
+              Home
+            </Link>
+            <Link to="/posts?sort=trending" className="hover:text-blue-500">
+              Trending
+            </Link>
+            <Link to="/posts?sort=popular" className="hover:text-blue-500">
+              Popular
+            </Link>
+            <Link to="/about" className="hover:text-blue-500">
+              About
+            </Link>
+            <SignedOut>
+              <Link to="/login">
+                <button className="py-2 px-4 rounded-3xl bg-blue-800 text-white hover:bg-blue-600 transition-colors">
+                  Login 👋
+                </button>
+              </Link>
+            </SignedOut>
+            <SignedIn>
+              <UserButton
+                signOutCallback={() => {
+                  window.location.href = "/"; // Redirect to homepage after sign-out
+                }}
+              />
+            </SignedIn>
+          </div>
+        </div>
+
+        {/* Desktop Menu */}
+        <div className="hidden md:flex items-center gap-8 xl:gap-12 font-medium text-gray-700">
+          <Link to="/" className="hover:text-blue-500">
+            Home
           </Link>
-        </SignedOut>
-        <SignedIn>
-          <UserButton />
-        </SignedIn>
-      </div>
-    </div>
+          <Link to="/posts?sort=trending" className="hover:text-blue-500">
+            Trending
+          </Link>
+          <Link to="/posts?sort=popular" className="hover:text-blue-500">
+            Popular
+          </Link>
+          <Link to="/about" className="hover:text-blue-500">
+            About
+          </Link>
+          <SignedOut>
+            <Link to="/login">
+              <button className="py-2 px-4 rounded-3xl bg-blue-800 text-white hover:bg-blue-600 transition-colors">
+                Login 👋
+              </button>
+            </Link>
+          </SignedOut>
+          <SignedIn>
+            <UserButton
+              signOutCallback={() => {
+                window.location.href = "/"; // Redirect to homepage after sign-out
+              }}
+            />
+          </SignedIn>
+        </div>
+      </nav>
+    </>
   );
 };
 

@@ -26,40 +26,57 @@ const Comment = ({ comment, postId }) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["comments", postId] });
-      toast.success("Comment deleted successfully");
+      toast.success("Comment deleted successfully.");
     },
     onError: (error) => {
-      toast.error(error.response.data);
+      toast.error(
+        error.response?.data?.message || "Failed to delete comment. Please try again."
+      );
     },
   });
 
   return (
-    <div className="p-4 bg-slate-50 rounded-xl mb-8">
+    <div className="p-4 bg-gray-50 rounded-xl mb-8 shadow-md">
+      {/* Header */}
       <div className="flex items-center gap-4">
-        {comment.user.img && (
-          <Image
+        {/* User Avatar */}
+        {comment.user.img ? (
+          <img
             src={comment.user.img}
+            alt={`${comment.user.username}'s avatar`}
             className="w-10 h-10 rounded-full object-cover"
-            w="40"
           />
+        ) : (
+          <div className="w-10 h-10 bg-gray-300 rounded-full" />
         )}
-        <span className="font-medium">{comment.user.username}</span>
-        <span className="text-sm text-gray-500">
-          {format(comment.createdAt)}
-        </span>
+
+        {/* User Information */}
+        <div className="flex flex-col">
+          <span className="font-medium text-gray-800">
+            {comment.user.username}
+          </span>
+          <span className="text-sm text-gray-500">
+            {format(comment.createdAt)}
+          </span>
+        </div>
+
+        {/* Delete Button */}
         {user &&
           (comment.user.username === user.username || role === "admin") && (
-            <span
-              className="text-xs text-red-300 hover:text-red-500 cursor-pointer"
+            <button
+              className="ml-auto text-xs text-red-500 hover:text-red-700 transition-colors disabled:opacity-50"
               onClick={() => mutation.mutate()}
+              disabled={mutation.isLoading}
+              aria-label="Delete comment"
             >
-              delete
-              {mutation.isPending && <span>(in progress)</span>}
-            </span>
+              {mutation.isLoading ? "Deleting..." : "Delete"}
+            </button>
           )}
       </div>
+
+      {/* Comment Content */}
       <div className="mt-4">
-        <p>{comment.desc}</p>
+        <p className="text-gray-700">{comment.desc}</p>
       </div>
     </div>
   );
