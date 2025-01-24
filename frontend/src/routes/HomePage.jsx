@@ -40,7 +40,7 @@ const HomePage = () => {
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-blue-800 tracking-tight">
             Welcome to{" "}
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-800 to-blue-600">
-              Cyber Updates
+              Cyber Updates Blogs!!
             </span>
           </h1>
           <p className="mt-6 text-lg md:text-xl text-gray-600 leading-relaxed">

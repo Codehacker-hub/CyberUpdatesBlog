@@ -70,6 +70,9 @@ const Navbar = () => {
             <Link to="/" className="hover:text-blue-500">
               Home
             </Link>
+            <Link to="write" className="hover:text-blue-500">
+              Write
+            </Link>
             <Link to="/posts?sort=trending" className="hover:text-blue-500">
               Trending
             </Link>
@@ -101,6 +104,9 @@ const Navbar = () => {
           <Link to="/" className="hover:text-blue-500">
             Home
           </Link>
+          <Link to="write" className="hover:text-blue-500">
+              Write
+            </Link>
           <Link to="/posts?sort=trending" className="hover:text-blue-500">
             Trending
           </Link>

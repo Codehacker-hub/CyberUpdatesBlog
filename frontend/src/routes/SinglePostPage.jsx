@@ -82,7 +82,7 @@ const SinglePostPage = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <Helmet>
-        <title>{data.title} | YourSiteName</title>
+        <title>Cyber Updates - {data.title}</title>
         <meta name="description" content={data.desc} />
         <meta name="keywords" content={data.tags?.join(", ")} />
         <meta property="og:title" content={data.title} />

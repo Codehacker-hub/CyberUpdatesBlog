@@ -26,7 +26,7 @@ const PostListItems = ({ post }) => {
           <div className="w-full xl:w-1/3">
             <Image
               src={post.img}
-              className="rounded-lg object-cover w-full h-48 xl:h-auto"
+              className="rounded-lg object-cover w-full h-48 xl:h-auto "
               alt={`Image for ${post.title}`}
               w="735"
             />

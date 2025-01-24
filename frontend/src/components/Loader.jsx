@@ -1,9 +1,10 @@
 const Loader = () => {
-    return (
-      <div  role="status">
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-50 backdrop-blur-sm">
+      <div role="status">
         <svg
           aria-hidden="true"
-          className="w-8 h-8 text-gray-200 animate-spin fill-blue-600"
+          className="w-16 h-16 text-gray-200 animate-spin fill-blue-600"
           viewBox="0 0 100 101"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
@@ -19,8 +20,8 @@ const Loader = () => {
         </svg>
         <span className="sr-only">Loading...</span>
       </div>
-    );
-  };
-  
-  export default Loader;
-  
+    </div>
+  );
+};
+
+export default Loader;

@@ -17,7 +17,7 @@ const postSchema = new Schema(
     },
     category: {
       type: String,
-      default:"general",
+      default: "general",
     },
     slug: {
       type: String,
@@ -40,6 +40,7 @@ const postSchema = new Schema(
       type: Number,
       default: 0,
     },
+    visitedBy: { type: [String], default: [] },
   },
   { timestamps: true }
 );

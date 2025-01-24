@@ -1,11 +1,11 @@
-import React from 'react';
+import React from "react";
 import { useUser, useAuth } from "@clerk/clerk-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { BookmarkIcon, StarIcon, Trash2Icon } from "lucide-react";
 import axios from "axios";
 import { toast } from "react-toastify";
-import ErrorFallback from './ErrorFallback';
+import ErrorFallback from "./ErrorFallback";
 
 // Create base styled components to replace shadcn/ui
 const Card = ({ children, className = "" }) => (
@@ -14,17 +14,17 @@ const Card = ({ children, className = "" }) => (
   </div>
 );
 
-const Button = ({ 
-  children, 
-  variant = "outline", 
-  className = "", 
+const Button = ({
+  children,
+  variant = "outline",
+  className = "",
   disabled = false,
-  onClick 
+  onClick,
 }) => {
   const variants = {
     outline: "border border-gray-200 hover:bg-gray-50",
     secondary: "bg-gray-100 hover:bg-gray-200",
-    destructive: "bg-red-500 hover:bg-red-600 text-white"
+    destructive: "bg-red-500 hover:bg-red-600 text-white",
   };
 
   return (
@@ -44,12 +44,12 @@ const Button = ({
   );
 };
 
-const Separator = () => (
-  <div className="h-px bg-gray-200 w-full" />
-);
+const Separator = () => <div className="h-px bg-gray-200 w-full" />;
 
 const Alert = ({ children, className = "" }) => (
-  <div className={`bg-red-50 border border-red-200 text-red-700 p-4 rounded-md ${className}`}>
+  <div
+    className={`bg-red-50 border border-red-200 text-red-700 p-4 rounded-md ${className}`}
+  >
     {children}
   </div>
 );
@@ -68,15 +68,19 @@ const PostMenuActions = ({ post }) => {
     queryFn: async () => {
       if (isAdmin) return []; // Skip fetching saved posts for admins
       const token = await getToken();
-      return axios.get(`${import.meta.env.VITE_API_URL}/users/saved`, {
-        headers: { Authorization: `Bearer ${token}` },
-      }).then(res => res.data);
+      return axios
+        .get(`${import.meta.env.VITE_API_URL}/users/saved`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((res) => res.data.savedPosts || []); // Ensure it's always an array
     },
     enabled: !isAdmin, // Skip query for admin role
   });
 
-  const isSaved = savedPosts?.some((p) => p === post._id) || false;
-  const canDelete = user && (post.user.username === user.username || isAdmin);
+  // Fix: Ensure savedPosts is always treated as an array
+  const isSaved = Array.isArray(savedPosts) && savedPosts.some((p) => p === post._id);
+  const canDelete =
+    user && (post.user.username === user.username || isAdmin);
 
   const deleteMutation = useMutation({
     mutationFn: async () => {
@@ -101,7 +105,8 @@ const PostMenuActions = ({ post }) => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["savedPosts"] }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["savedPosts"] }),
     onError: (error) => toast.error(error.response.data),
   });
 
@@ -114,7 +119,8 @@ const PostMenuActions = ({ post }) => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["post", post.slug] }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["post", post.slug] }),
     onError: (error) => toast.error(error.response.data),
   });
 
@@ -137,42 +143,52 @@ const PostMenuActions = ({ post }) => {
       <div className="p-6">
         <h2 className="text-lg font-semibold mb-4">Post Actions</h2>
         <div className="space-y-2">
-          <Button 
-            variant={isSaved ? "secondary" : "outline"} 
-            className="w-full justify-start gap-2" 
+          <Button
+            variant={isSaved ? "secondary" : "outline"}
+            className="w-full justify-start gap-2"
             onClick={handleSave}
             disabled={isPending || saveMutation.isPending}
           >
-            <BookmarkIcon className={`h-4 w-4 ${isSaved ? "fill-current" : ""}`} />
+            <BookmarkIcon
+              className={`h-4 w-4 ${isSaved ? "fill-current" : ""}`}
+            />
             {isSaved ? "Saved" : "Save Post"}
-            {saveMutation.isPending && <span className="text-xs ml-2">(saving...)</span>}
+            {saveMutation.isPending && (
+              <span className="text-xs ml-2">(saving...)</span>
+            )}
           </Button>
 
           {isAdmin && (
-            <Button 
+            <Button
               variant={post.isFeatured ? "secondary" : "outline"}
-              className="w-full justify-start gap-2" 
+              className="w-full justify-start gap-2"
               onClick={() => featureMutation.mutate()}
               disabled={featureMutation.isPending}
             >
-              <StarIcon className={`h-4 w-4 ${post.isFeatured ? "fill-current" : ""}`} />
+              <StarIcon
+                className={`h-4 w-4 ${post.isFeatured ? "fill-current" : ""}`}
+              />
               {post.isFeatured ? "Featured" : "Feature Post"}
-              {featureMutation.isPending && <span className="text-xs ml-2">(updating...)</span>}
+              {featureMutation.isPending && (
+                <span className="text-xs ml-2">(updating...)</span>
+              )}
             </Button>
           )}
 
           {canDelete && (
             <>
               <Separator />
-              <Button 
-                variant="destructive" 
+              <Button
+                variant="destructive"
                 className="w-full justify-start gap-2"
                 onClick={() => deleteMutation.mutate()}
                 disabled={deleteMutation.isPending}
               >
                 <Trash2Icon className="h-4 w-4" />
                 Delete Post
-                {deleteMutation.isPending && <span className="text-xs ml-2">(deleting...)</span>}
+                {deleteMutation.isPending && (
+                  <span className="text-xs ml-2">(deleting...)</span>
+                )}
               </Button>
             </>
           )}
